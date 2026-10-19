@@ -1,0 +1,305 @@
+name: gtbs-local
+
+services:
+  booking-db:
+    image: postgres:16-alpine
+    container_name: gtbs-booking-db
+    environment:
+      POSTGRES_DB: global_traffic_system
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking -d global_traffic_system"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  journey-db:
+    image: postgres:16-alpine
+    container_name: gtbs-journey-db
+    environment:
+      POSTGRES_DB: journey_compatibility
+      POSTGRES_USER: journey
+      POSTGRES_PASSWORD: journey
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U journey -d journey_compatibility"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  notification-db:
+    image: postgres:16-alpine
+    container_name: gtbs-notification-db
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification
+      POSTGRES_PASSWORD: notification
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification -d notification_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  route-db:
+    image: postgres:16-alpine
+    container_name: gtbs-route-db
+    environment:
+      POSTGRES_DB: gtbs_route_management
+      POSTGRES_USER: route
+      POSTGRES_PASSWORD: route
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U route -d gtbs_route_management"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  observability-db:
+    image: postgres:15-alpine
+    container_name: gtbs-observability-db
+    environment:
+      POSTGRES_DB: observability
+      POSTGRES_USER: observability
+      POSTGRES_PASSWORD: observability
+    ports:
+      - "5437:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U observability -d observability"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  admin-authority-db:
+    image: postgres:15-alpine
+    container_name: gtbs-admin-authority-db
+    environment:
+      POSTGRES_DB: gtbs_authority
+      POSTGRES_USER: gtbs
+      POSTGRES_PASSWORD: gtbs
+    ports:
+      - "5438:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gtbs -d gtbs_authority"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: gtbs-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    platform: linux/amd64
+    container_name: gtbs-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    platform: linux/amd64
+    container_name: gtbs-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  journey-compatibility-service:
+    build:
+      context: ./journey-compatibility-service
+    image: gtbs/journey-compatibility-service:local
+    container_name: gtbs-journey-compatibility-service
+    depends_on:
+      journey-db:
+        condition: service_healthy
+      booking-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://journey-db:5432/journey_compatibility
+      SPRING_DATASOURCE_USERNAME: journey
+      SPRING_DATASOURCE_PASSWORD: journey
+      BOOKING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/global_traffic_system
+      BOOKING_DATASOURCE_USERNAME: booking
+      BOOKING_DATASOURCE_PASSWORD: booking
+      REDIS_HOST: redis
+
+  booking-service:
+    build:
+      context: ./booking-service/booking-service
+    image: gtbs/booking-service:local
+    container_name: gtbs-booking-service
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      journey-compatibility-service:
+        condition: service_started
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/global_traffic_system
+      SPRING_DATASOURCE_USERNAME: booking
+      SPRING_DATASOURCE_PASSWORD: booking
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JOURNEY_COMPATIBILITY_SERVICE_URL: http://journey-compatibility-service:8082
+      ROUTE_SERVICE_URL: http://route-management:8082
+      ROUTE_MANAGEMENT_SERVICE_URL: http://route-management:8082
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: gtbs-notification-service
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-db:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: notification
+      SPRING_DATASOURCE_PASSWORD: notification
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BOOKING_KAFKA_TOPIC: booking-events
+
+  route-management:
+    build:
+      context: ./route-management
+    container_name: gtbs-route-management
+    depends_on:
+      route-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    ports:
+      - "8083:8082"
+    environment:
+      POSTGRES_HOST: route-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gtbs_route_management
+      POSTGRES_USER: route
+      POSTGRES_PASSWORD: route
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  observability-service:
+    build:
+      context: ./observability-service
+    image: gtbs/observability-service:local
+    container_name: gtbs-observability-service
+    depends_on:
+      observability-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    ports:
+      - "8085:8080"
+    environment:
+      DB_HOST: observability-db
+      DB_PORT: 5432
+      DB_NAME: observability
+      DB_USER: observability
+      DB_PASSWORD: observability
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_BOOKING_LIFECYCLE: booking-events
+
+  admin-authority-service:
+    build:
+      context: ./admin-authority-service
+    image: gtbs/admin-authority-service:local
+    container_name: gtbs-admin-authority-service
+    depends_on:
+      admin-authority-db:
+        condition: service_healthy
+    ports:
+      - "8086:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://admin-authority-db:5432/gtbs_authority
+      DATABASE_USERNAME: gtbs
+      DATABASE_PASSWORD: gtbs
+      APP_SECURITY_ENABLED: "false"
+      KAFKA_PUBLISH_ENABLED: "false"
+      ROUTE_MANAGEMENT_BASE_URL: http://route-management:8082
+      BOOKING_SERVICE_BASE_URL: http://booking-service:8081
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    image: gtbs/api-gateway:local
+    container_name: gtbs-api-gateway
+    depends_on:
+      - booking-service
+      - journey-compatibility-service
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      JWT_SECRET: local-dev-secret
+      RATE_LIMIT_MAX: 25
+      RATE_LIMIT_WINDOW: 60
+      BREAKER_MAX_REQUESTS: 3
+      BREAKER_TIMEOUT: 10
+      BREAKER_FAILURES: 3
+      BOOKING_URL: http://booking-service:8081
+      COMPT_SERV_URL: http://journey-compatibility-service:8082
+      ROUTE_SERVICE_URL: http://route-management:8082
+      USER_SERVICE: http://notification-service:8084
+      AUDIT_SERVICE_URL: http://observability-service:8080
+      AUTHORITY_SERVICE_URL: http://admin-authority-service:8083
+      CORS_ALLOW_ORIGINS: http://localhost:3000,http://localhost:5173
+
+  traffic-authority-frontend:
+    build:
+      context: ./traffic-authority-frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api
+        VITE_GATEWAY_BASE_URL: http://localhost:8080
+    image: gtbs/traffic-authority-frontend:local
+    container_name: gtbs-traffic-authority-frontend
+    depends_on:
+      - api-gateway
+    ports:
+      - "3000:80"

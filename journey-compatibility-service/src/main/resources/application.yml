@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────────
+# BASE CONFIGURATION (loaded for all profiles)
+# ─────────────────────────────────────────────────────────────────
+
+spring:
+  application:
+    name: journey-compatibility-svc
+  profiles:
+    active: dev  # Default to 'dev' profile when running locally
+
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      redisCapacity:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, circuitbreakers
+  health:
+    circuitbreakers:
+      enabled: true
+
+app:
+  route:
+    default-capacity:
+      car: 100
+      bus: 20
+      truck: 50
+    time-window-hours: 1
+  reconciliation:
+    interval-ms: 3600000
+    log-queries: false

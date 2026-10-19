@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-service-local
+  labels:
+    app: observability-service-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observability-service-local
+  template:
+    metadata:
+      labels:
+        app: observability-service-local
+    spec:
+      containers:
+        - name: observability-service
+          image: observability-service:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: observability-config-local
+                  key: DB_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: observability-secrets-local
+                  key: DB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: observability-secrets-local
+                  key: DB_PASSWORD
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: observability-config-local
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+            - name: APP_AUDIT_DEFAULT_REGION_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: observability-config-local
+                  key: APP_AUDIT_DEFAULT_REGION_ID
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-service-local
+spec:
+  selector:
+    app: observability-service-local
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

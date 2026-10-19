@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: journey-compatibility-svc
+  labels:
+    app: journey-compatibility-svc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: journey-compatibility-svc
+  template:
+    metadata:
+      labels:
+        app: journey-compatibility-svc
+        # Required for Workload Identity — tells the mutating webhook to inject
+        # the Azure federated token volume into this pod
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: journey-compatibility-svc  # SA linked to Managed Identity
+      imagePullSecrets:
+      - name: ghcr-secret
+      volumes:
+        # CSI volume — MUST be mounted for the SecretProviderClass to activate
+        # and for the synced K8s Secret (journey-kv-synced) to be created
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: journey-kv-secrets
+      containers:
+      - name: journey-compatibility-svc
+        image: ghcr.io/tribunal-of-human-expansion/journey-compatibility-service:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - name: keyvault-secrets
+            mountPath: "/mnt/secrets"
+            readOnly: true
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        # ── Non-secret config from ConfigMap ──────────────────────────────────
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: journey-compatibility-config
+              key: DB_URL
+        - name: SPRING_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: journey-compatibility-config
+              key: SPRING_REDIS_HOST
+        - name: SPRING_REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: journey-compatibility-config
+              key: SPRING_REDIS_PORT
+        # ── Secrets from Key Vault (via CSI-synced K8s Secret) ───────────────
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: journey-kv-synced   # created by CSI driver from Key Vault
+              key: DB_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: journey-kv-synced
+              key: DB_PASSWORD
+        - name: SPRING_REDIS_PASSWORD
+          valueFrom:
+           secretKeyRef:
+             name: journey-kv-synced
+             key: REDIS_PASSWORD
+        - name: BOOKING_DATASOURCE_URL
+          valueFrom:
+           secretKeyRef:
+             name: journey-kv-synced
+             key: BOOKING_DATASOURCE_URL
+        - name: BOOKING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: journey-kv-synced
+              key: BOOKING_DATASOURCE_USERNAME
+        - name: BOOKING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: journey-kv-synced
+              key: BOOKING_DATASOURCE_PASSWORD
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: journey-compatibility-svc
+spec:
+  selector:
+    app: journey-compatibility-svc
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: journey-compatibility-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # nginx.ingress.kubernetes.io/ssl-redirect: "false" # Uncomment if not using HTTPS
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: journey-compatibility-svc
+            port:
+              number: 80

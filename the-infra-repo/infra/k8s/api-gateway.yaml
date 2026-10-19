@@ -1,0 +1,85 @@
+# API gateway — replace image; ensure booking + compatibility Services exist in this namespace.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: default
+  labels:
+    app: api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: gateway
+          image: ghcr.io/tribunal-of-human-expansion/api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            # Cluster DNS: Service port 80 → booking pods (matches typical AKS Service)
+            - name: BOOKING_URL
+              value: "http://booking-service"
+            - name: COMPT_SERV_URL
+              value: "http://journey-compatibility-svc"
+            - name: ROUTE_SERVICE_URL
+              value: "http://route-management:8082"
+            - name: USER_SERVICE
+              value: "http://notification-service:8084"
+            - name: AUDIT_SERVICE_URL
+              value: "http://observability-service:8080"
+            # - name: AUTHORITY_SERVICE_URL
+            #   value: "http://admin-authority-service:8083"
+            # Optional: protect /bookings/* (not /api/bookings)
+            # - name: JWT_SECRET
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: gateway-secrets
+            #       key: jwt-secret
+            #       optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: default
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

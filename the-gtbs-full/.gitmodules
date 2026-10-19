@@ -1,0 +1,27 @@
+[submodule "api-gateway"]
+	path = api-gateway
+	url = https://github.com/Tribunal-of-Human-Expansion/api-gateway.git
+[submodule "booking-service"]
+	path = booking-service
+	url = https://github.com/Tribunal-of-Human-Expansion/booking-service.git
+[submodule "journey-compatibility-service"]
+	path = journey-compatibility-service
+	url = https://github.com/Tribunal-of-Human-Expansion/journey-compatibility-service.git
+[submodule "notification-service"]
+	path = notification-service
+	url = https://github.com/Tribunal-of-Human-Expansion/notification-service.git
+[submodule "observability-service"]
+	path = observability-service
+	url = https://github.com/Tribunal-of-Human-Expansion/observability-service.git
+[submodule "route-management"]
+	path = route-management
+	url = https://github.com/Tribunal-of-Human-Expansion/route-management.git
+[submodule "admin-authority-service"]
+	path = admin-authority-service
+	url = https://github.com/Tribunal-of-Human-Expansion/admin-authority-service.git
+[submodule "traffic-authority-frontend"]
+	path = traffic-authority-frontend
+	url = https://github.com/Tribunal-of-Human-Expansion/traffic-authority-frontend.git
+[submodule "the-infra-repo"]
+	path = the-infra-repo
+	url = https://github.com/Tribunal-of-Human-Expansion/the-infra-repo.git

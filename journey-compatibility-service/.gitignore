@@ -1,0 +1,16 @@
+# Maven
+target/
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Spring Boot local config (never commit real values)
+src/main/resources/application-local.yml
+
+# K8s — files with real credentials (run manually, never commit)
+k8s/ghcr-secret.sh
+k8s/env-config.yaml   # replaced by configmap.yaml (no secrets) + Key Vault

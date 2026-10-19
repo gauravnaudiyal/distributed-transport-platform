@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: route-management-config
+data:
+  SPRING_PROFILES_ACTIVE: "azure"
+  POSTGRES_DB: "gtbs_route_management"
+  POSTGRES_USER: "gtbsadmin"
+  # Set these in env-config.yaml or rely on secrets from Terraform
+  POSTGRES_HOST: "update-me.postgres.database.azure.com"
+  REDIS_HOST: "update-me.redis.cache.windows.net"

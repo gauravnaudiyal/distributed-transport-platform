@@ -1,0 +1,53 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: booking-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://ds-gtbs.postgres.database.azure.com:5432/global_traffic_system?sslmode=require}
+    username: ${SPRING_DATASOURCE_USERNAME:ds_gtb_sadmin}
+    password: ${SPRING_DATASOURCE_PASSWORD:dsProject1}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000  # 10 minutes in milliseconds
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+booking:
+  kafka:
+    topic: booking-events
+  outbox:
+    poll-interval-ms: 1000
+  idempotency:
+    ttl-minutes: 60
+
+journey-compatibility-service:
+  base-url: ${JOURNEY_COMPATIBILITY_SERVICE_URL:http://localhost:8082}
+

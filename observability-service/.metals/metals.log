@@ -1,0 +1,70 @@
+[removed committed Metals log contents containing local machine paths and IDE runtime details]
+2026.03.14 00:39:51 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditEventType.java. Using fallback presentation compiler.[0m
+2026.03.14 00:39:51 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditEventType.java. Using fallback presentation compiler.[0m
+2026.03.14 00:39:53 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditRecord.java[0m
+2026.03.14 00:39:53 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditRecord.java. Using fallback presentation compiler.[0m
+2026.03.14 00:39:53 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditRecord.java. Using fallback presentation compiler.[0m
+2026.03.14 00:39:53 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditRecord.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:05 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/repository/AuditRecordRepository.java[0m
+2026.03.14 00:40:05 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/repository/AuditRecordRepository.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:05 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/repository/AuditRecordRepository.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:07 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/service/AuditLogService.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:07 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/service/AuditLogService.java[0m
+2026.03.14 00:40:07 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/service/AuditLogService.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:07 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/service/AuditLogService.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:14 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/AuditEventConsumers.java[0m
+2026.03.14 00:40:14 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/AuditEventConsumers.java. Using fallback presentation compiler.[0m
+Mar 14, 2026 12:40:14 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 76
+2026.03.14 00:40:14 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/AuditEventConsumers.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:15 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/BookingLifecycleEvent.java[0m
+2026.03.14 00:40:14 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/BookingLifecycleEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:14 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/BookingLifecycleEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:16 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/PolicyChangeEvent.java[0m
+2026.03.14 00:40:16 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/PolicyChangeEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:16 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/PolicyChangeEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:16 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ObservabilityServiceApplication.java. Using fallback presentation compiler.[0m
+2026.03.14 00:40:16 WARN  no build target for: /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ObservabilityServiceApplication.java[0m
+2026.03.14 00:40:16 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ObservabilityServiceApplication.java. Using fallback presentation compiler.[0m
+Mar 14, 2026 12:40:38 AM org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTrace
+2026.03.14 01:54:39 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditController.java. Using fallback presentation compiler.[0m
+2026.03.14 01:55:04 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditRecordResponse.java. Using fallback presentation compiler.[0m
+2026.03.14 02:11:28 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditEventType.java. Using fallback presentation compiler.[0m
+2026.03.14 02:11:32 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditRecord.java. Using fallback presentation compiler.[0m
+2026.03.14 02:41:51 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/repository/AuditRecordRepository.java. Using fallback presentation compiler.[0m
+2026.03.14 02:41:53 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/service/AuditLogService.java. Using fallback presentation compiler.[0m
+2026.03.14 02:42:00 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/AuditEventConsumers.java. Using fallback presentation compiler.[0m
+2026.03.14 02:42:00 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/BookingLifecycleEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 02:42:02 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ingest/PolicyChangeEvent.java. Using fallback presentation compiler.[0m
+2026.03.14 02:42:02 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/ObservabilityServiceApplication.java. Using fallback presentation compiler.[0m
+2026.03.14 13:12:58 INFO  Started: Metals version 1.6.6 in folders '/Users/mogboella/School/DISTRIBUTED_SYS/observability-service' for client Visual Studio Code 1.110.1.
+2026.03.14 13:12:58 INFO  Memory monitor started
+2026.03.14 13:12:59 WARN  Using H2 2.4.240 which is newer than the version Flyway has been verified with. The latest verified version of H2 is 2.3.232.
+2026.03.15 02:33:58 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditController.java. Using fallback presentation compiler.
+Mar 15, 2026 2:33:58 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1
+2026.03.15 02:33:58 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditController.java. Using fallback presentation compiler.
+2026.03.15 02:34:15 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditController.java. Using fallback presentation compiler.
+2026.03.15 02:35:01 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditEventType.java. Using fallback presentation compiler.
+2026.03.15 02:35:01 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/domain/AuditEventType.java. Using fallback presentation compiler.
+2026.03.15 02:36:58 INFO  no build target found for /Users/mogboella/School/DISTRIBUTED_SYS/observability-service/src/main/java/com/gtbs/observability/audit/api/AuditController.java. Using fallback presentation compiler.
+Mar 15, 2026 2:40:03 AM org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTrace
+2026.03.15 02:40:17 INFO  Shutting down server
+2026.03.15 02:40:17 INFO  Memory monitor stopped
+2026.03.15 02:40:17 INFO  shutting down Metals
+2026.03.15 02:40:17 INFO  Exiting server
+2026.03.15 02:40:17 ERROR Unexpected error initializing server: 
+org.eclipse.lsp4j.jsonrpc.ResponseErrorException: Request window/showMessageRequest failed with message: Canceled
+	at org.eclipse.lsp4j.jsonrpc.RemoteEndpoint.handleResponse(RemoteEndpoint.java:214)
+	at org.eclipse.lsp4j.jsonrpc.RemoteEndpoint.consume(RemoteEndpoint.java:198)
+	at org.eclipse.lsp4j.jsonrpc.json.StreamMessageProducer.handleMessage(StreamMessageProducer.java:189)
+	at org.eclipse.lsp4j.jsonrpc.json.StreamMessageProducer.listen(StreamMessageProducer.java:97)
+	at org.eclipse.lsp4j.jsonrpc.json.ConcurrentMessageProcessor.run(ConcurrentMessageProcessor.java:97)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.lang.Thread.run(Thread.java:1474)
+

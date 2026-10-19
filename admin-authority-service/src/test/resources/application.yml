@@ -1,0 +1,29 @@
+spring:
+  flyway:
+    enabled: false
+  datasource:
+    url: jdbc:h2:mem:gtbs_authority;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+
+app:
+  security:
+    enabled: false
+  kafka:
+    publish-enabled: false
+
+gtbs:
+  region-id: test-region
+  route-management:
+    base-url: http://localhost:0
+    timeout: 2s
+  booking:
+    base-url: http://localhost:0
+    timeout: 2s
+  kafka:
+    authority-topic: gtbs.authority.instructions.test

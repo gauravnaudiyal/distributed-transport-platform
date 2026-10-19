@@ -1,0 +1,68 @@
+name: publish image
+
+on:
+    push:
+        branches: [main, development]
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE_NAME: ${{ github.repository }}
+    SERVICE_NAME: ${{ github.event.repository.name }}
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        permissions:
+            packages: write
+            contents: read
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Convert repo name to lowercase
+              run: echo "IMAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+            - uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: true
+                  tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
+
+    deploy:
+        needs: build
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+            - name: Load deployment config
+              run: cat deploy.env >> $GITHUB_ENV
+
+            - name: Get AKS credentials
+              run: |
+                  if [ -z "${{ env.AKS_CLUSTER_NAME }}" ]; then
+                    echo "AKS_CLUSTER_NAME is not set. Define it in deploy.env or GitHub environment variables."
+                    exit 1
+                  fi
+
+                  az aks get-credentials \
+                    --resource-group ${{ env.RESOURCE_GROUP }} \
+                    --name ${{ env.AKS_CLUSTER_NAME }}
+
+            - name: Update deployment image
+              run: |
+                  kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
+                    ${{ env.CONTAINER_NAME }}=ghcr.io/${{ env.IMAGE_NAME }}:latest \
+                    -n ${{ env.NAMESPACE }}

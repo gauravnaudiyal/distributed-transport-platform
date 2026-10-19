@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-service
+  labels:
+    app: observability-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: observability-service
+  template:
+    metadata:
+      labels:
+        app: observability-service
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: observability-service
+      imagePullSecrets:
+        - name: ghcr-pull
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: observability-kv-secrets
+      containers:
+        - name: observability-service
+          image: ghcr.io/tribunal-of-human-expansion/observability-service:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: "/mnt/secrets"
+              readOnly: true
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod,azure"
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: observability-config
+                  key: DB_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: observability-kv-synced
+                  key: DB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: observability-kv-synced
+                  key: DB_PASSWORD
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                secretKeyRef:
+                  name: observability-kv-synced
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+            - name: APP_AUDIT_DEFAULT_REGION_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: observability-config
+                  key: APP_AUDIT_DEFAULT_REGION_ID
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-service
+spec:
+  selector:
+    app: observability-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

@@ -1,0 +1,125 @@
+version: '3.9'
+
+services:
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: broker
+    hostname: broker
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --list" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  booking-postgres:
+    image: postgres:16-alpine
+    container_name: booking-postgres
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U booking -d booking_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  notification-postgres:
+    image: postgres:16-alpine
+    container_name: notification-postgres
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2211
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d notification_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: booking-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  journey-compatibility-service:
+    image: ghcr.io/tribunal-of-human-expansion/journey-compatibility-service:sha-16f665fee8fba5bdfbe2e7e3652e2a6b7719f3fd
+    container_name: compatibility-service
+    ports:
+      - "8082:8082" # ← compatibility-service owns 8082
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  booking-service:
+    image: ghcr.io/tribunal-of-human-expansion/booking-service:sha-69df53e28bd6bd22442f8fdba1d0f28b3cd71029
+    container_name: booking-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      booking-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      journey-compatibility-service:
+        condition: service_started
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-postgres:5432/booking_db
+      SPRING_DATASOURCE_USERNAME: booking
+      SPRING_DATASOURCE_PASSWORD: booking123
+      SPRING_DATA_REDIS_HOST: booking-redis
+      SPRING_DATA_REDIS_PORT: 6379
+      COMPATIBILITY_SERVICE_URL: http://compatibility-service:8082
+
+  notification-service:
+    build: .
+    container_name: notification-service
+    ports:
+      - "8084:8084" # ← fixed, was conflicting with 8082
+    depends_on:
+      kafka:
+        condition: service_healthy
+      notification-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 2211
+
+volumes:
+  pgdata:

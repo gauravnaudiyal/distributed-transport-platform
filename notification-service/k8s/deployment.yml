@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: default
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: booking-service
+      imagePullSecrets:
+        - name: ghcr-secret
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: notification-kv-secrets
+      containers:
+        - name: notification-service
+          image: ghcr.io/tribunal-of-human-expansion/notification-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+          envFrom:
+            - configMapRef:
+                name: notification-service-config
+          env:
+            - name: notification_db_url
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secrets
+                  key: notification_db_url
+            - name: notification_db_username
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secrets
+                  key: notification_db_username
+            - name: notification_db_password
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secrets
+                  key: notification_db_password
+            - name: notification_kafka_bootstrap_servers
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secrets
+                  key: notification_kafka_bootstrap_servers
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: default
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8084
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notification-service-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /notification/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 80

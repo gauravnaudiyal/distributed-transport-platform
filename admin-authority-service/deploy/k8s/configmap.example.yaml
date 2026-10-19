@@ -1,0 +1,10 @@
+# Copy to configmap.yaml, adjust values, then: kubectl apply -f configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-authority-config
+data:
+  gtbs-region-id: "region-a"
+  route-management-base-url: "http://route-management:8082"
+  booking-service-base-url: "http://booking-service:8081"
+  kafka-bootstrap-servers: "kafka:9092"

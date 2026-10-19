@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service
+  namespace: default
+  labels:
+    app: booking-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: booking-service
+      imagePullSecrets:
+        - name: ghcr-pull
+      volumes:
+        - name: keyvault-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: booking-kv-secrets
+      containers:
+        - name: booking-service
+          image: ghcr.io/tribunal-of-human-expansion/booking-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: keyvault-secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+          envFrom:
+            - configMapRef:
+                name: booking-service-config
+          env:
+            - name: BOOKING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: BOOKING_DATASOURCE_URL
+            - name: BOOKING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: BOOKING_DATASOURCE_USERNAME
+            - name: BOOKING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: BOOKING_DATASOURCE_PASSWORD
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: SPRING_DATA_REDIS_HOST
+            - name: SPRING_DATA_REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: SPRING_DATA_REDIS_PORT
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: SPRING_DATA_REDIS_PASSWORD
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                secretKeyRef:
+                  name: booking-kv-synced
+                  key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+  namespace: default
+spec:
+  selector:
+    app: booking-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: booking-service-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /booking/(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 80

@@ -1,0 +1,32 @@
+services:
+  postgres:
+    ports:
+      - "15432:5432"
+
+  kafka:
+    ports:
+      - "19092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_HOST://localhost:19092,PLAINTEXT://kafka:19092
+
+  kafka-ui:
+    ports:
+      - "18081:8080"
+
+  jaeger:
+    ports:
+      - "16687:16686"
+      - "14317:4317"
+      - "14318:4318"
+
+  otel-collector:
+    ports:
+      - "14319:4318"
+
+  prometheus:
+    ports:
+      - "19090:9090"
+
+  grafana:
+    ports:
+      - "13000:3000"

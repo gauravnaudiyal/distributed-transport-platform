@@ -1,0 +1,29 @@
+# AKS Application routing — requires: az aks approuting enable
+# IngressClass is created by the add-on (see: kubectl get ingressclass).
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gtbs
+  namespace: default
+spec:
+  ingressClassName: webapprouting.kubernetes.azure.com
+  rules:
+    - http:
+        paths:
+          # API (SPA should use relative /api/... when built with VITE_API_BASE=/api)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
+          # Single-page app
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: traffic-authority-frontend
+                port:
+                  number: 80

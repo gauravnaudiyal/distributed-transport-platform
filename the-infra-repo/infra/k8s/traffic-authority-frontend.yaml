@@ -1,0 +1,63 @@
+# Static SPA (nginx) — image must be built with VITE_API_BASE=/api (and/or VITE_API_BASE_URL=/api).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-authority-frontend
+  namespace: default
+  labels:
+    app: traffic-authority-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: traffic-authority-frontend
+  template:
+    metadata:
+      labels:
+        app: traffic-authority-frontend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: nginx
+          image: ghcr.io/tribunal-of-human-expansion/traffic-authority-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-authority-frontend
+  namespace: default
+  labels:
+    app: traffic-authority-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: traffic-authority-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

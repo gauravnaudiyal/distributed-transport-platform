@@ -1,0 +1,63 @@
+# ─────────────────────────────────────────────────────────────────
+# PRODUCTION PROFILE  (active when SPRING_PROFILES_ACTIVE=prod)
+# All secrets are injected as Azure App Service Application Settings
+# (environment variables). Never commit real values here.
+# ─────────────────────────────────────────────────────────────────
+
+server:
+  port: 8080          # Azure App Service expects port 8080 on the container
+
+spring:
+  application:
+    name: journey-compatibility-svc
+
+  datasource:
+    # Primary Database (internal)
+    primary:
+      jdbc-url: ${SPRING_DATASOURCE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 2
+        connection-timeout: 5000
+
+    # Booking Database (external Azure PostgreSQL)
+    booking:
+      jdbc-url: ${BOOKING_DATASOURCE_URL}
+      username: ${BOOKING_DATASOURCE_USERNAME}
+      password: ${BOOKING_DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 2
+        connection-timeout: 5000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST}
+      port: ${SPRING_REDIS_PORT}
+      password: ${SPRING_REDIS_PASSWORD}
+      ssl:
+        enabled: false                  # Azure Cache for Redis has Non-TLS access enabled on port 10000
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 2
+
+app:
+  reconciliation:
+    use-external-booking-db: ${USE_EXTERNAL_BOOKING_DB:true}
+    log-queries: ${RECONCILIATION_LOG_QUERIES:false}

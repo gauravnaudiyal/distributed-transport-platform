@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: admin-authority-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:}
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/gtbs_authority}
+    username: ${DATABASE_USERNAME:gtbs}
+    password: ${DATABASE_PASSWORD:gtbs}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: stored_as_utc
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.add.type.headers: false
+
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /api/swagger-ui
+
+gtbs:
+  region-id: ${GTBS_REGION_ID:region-a}
+  route-management:
+    base-url: ${ROUTE_MANAGEMENT_BASE_URL:http://localhost:8082}
+    timeout: 5s
+  booking:
+    base-url: ${BOOKING_SERVICE_BASE_URL:http://localhost:8081}
+    timeout: 3s
+  kafka:
+    authority-topic: ${GTBS_AUTHORITY_TOPIC:gtbs.authority.instructions}
+
+app:
+  security:
+    # When true, require JWT with role TRAFFIC_AUTHORITY for /authority/**
+    enabled: ${APP_SECURITY_ENABLED:true}
+  kafka:
+    publish-enabled: ${KAFKA_PUBLISH_ENABLED:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+server:
+  port: ${SERVER_PORT:8083}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gtbs_authority
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+app:
+  security:
+    enabled: false
+  kafka:
+    publish-enabled: false
